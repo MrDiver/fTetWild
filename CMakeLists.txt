@@ -6,16 +6,16 @@ project(FloatTetwild)
 # Detects whether this is a top-level project
 get_directory_property(HAS_PARENT PARENT_DIRECTORY)
 if(HAS_PARENT)
-    set(FLOAT_TETWILD_TOPLEVEL_PROJECT OFF)
+  set(FLOAT_TETWILD_TOPLEVEL_PROJECT OFF)
 else()
-    set(FLOAT_TETWILD_TOPLEVEL_PROJECT ON)
+  set(FLOAT_TETWILD_TOPLEVEL_PROJECT ON)
 endif()
 
 if(INPUT_THIRD_PARTY_DIR)
-    set(FLOAT_TETWILD_EXTERNAL
+  set(FLOAT_TETWILD_EXTERNAL
       ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_THIRD_PARTY_DIR}/)
 else()
-    set(FLOAT_TETWILD_EXTERNAL ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/)
+  set(FLOAT_TETWILD_EXTERNAL ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -71,7 +71,7 @@ option(LIBIGL_WITH_XML "Use XML" OFF)
 
 # Sanitizers
 if(FLOAT_TETWILD_WITH_SANITIZERS)
-    list(APPEND CMAKE_MODULE_PATH
+  list(APPEND CMAKE_MODULE_PATH
        ${FLOAT_TETWILD_EXTERNAL}/sanitizers-cmake/cmake)
 endif()
 
@@ -81,11 +81,6 @@ include(FloatTetwildDependencies)
 # ##############################################################################
 # FloatTetwild library
 # ##############################################################################
-
-find_package(GMPfTetWild)
-if(NOT ${GMP_FOUND})
-    message(FATAL_ERROR "Cannot find GMP")
-endif()
 
 # find_package(MPFR) IF(NOT ${MPFR_FOUND}) MESSAGE(FATAL_ERROR "Cannot find
 # MPFR") ENDIF()
@@ -110,8 +105,14 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 # target_compile_definitions(${PROJECT_NAME} PUBLIC
 # -DEIGEN_STACK_ALLOCATION_LIMIT=8388608)
 
+find_package(Boost REQUIRED)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+  target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+endif()
+
 if(FLOAT_TETWILD_WITH_SANITIZERS)
-    add_sanitizers(${PROJECT_NAME})
+  add_sanitizers(${PROJECT_NAME})
 endif()
 
 # ##############################################################################
@@ -119,10 +120,8 @@ endif()
 # ##############################################################################
 
 if(FLOAT_TETWILD_USE_FLOAT)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC -DFLOAT_TETWILD_USE_FLOAT)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DFLOAT_TETWILD_USE_FLOAT)
 endif()
-
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${GMP_INCLUDE_DIRS})
 
 target_link_libraries(
   ${PROJECT_NAME}
@@ -133,17 +132,16 @@ target_link_libraries(
          Threads::Threads
          # fast_winding_number
          json
-         ${GMP_LIBRARIES}
          # ${MPFR_LIBRARIES}
 )
 if(FLOAT_TETWILD_ENABLE_TBB)
-    target_link_libraries(${PROJECT_NAME} PUBLIC TBB::tbb)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC FLOAT_TETWILD_USE_TBB)
+  target_link_libraries(${PROJECT_NAME} PUBLIC TBB::tbb)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC FLOAT_TETWILD_USE_TBB)
 endif()
 
 if(FLOAT_TETWILD_WITH_EXACT_ENVELOPE)
-    target_link_libraries(${PROJECT_NAME} PUBLIC FastEnvelope)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC NEW_ENVELOPE)
+  target_link_libraries(${PROJECT_NAME} PUBLIC FastEnvelope)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC NEW_ENVELOPE)
 endif()
 
 # ##############################################################################
@@ -152,25 +150,25 @@ endif()
 
 # Main executable
 if(FLOAT_TETWILD_TOPLEVEL_PROJECT)
-    add_executable(${PROJECT_NAME}_bin src/main.cpp)
-    target_compile_features(${PROJECT_NAME}_bin PUBLIC ${CXX14_FEATURES})
+  add_executable(${PROJECT_NAME}_bin src/main.cpp)
+  target_compile_features(${PROJECT_NAME}_bin PUBLIC ${CXX14_FEATURES})
 
-    target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME} CLI11::CLI11
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME} CLI11::CLI11
                                                    warnings::all)
 
-    if(TARGET igl::tetgen)
-        target_link_libraries(${PROJECT_NAME} PUBLIC igl::tetgen)
-        target_compile_definitions(${PROJECT_NAME} PUBLIC -DLIBIGL_WITH_TETGEN)
-    endif()
+  if(TARGET igl::tetgen)
+    target_link_libraries(${PROJECT_NAME} PUBLIC igl::tetgen)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC -DLIBIGL_WITH_TETGEN)
+  endif()
 
-    if(FLOAT_TETWILD_WITH_SANITIZERS)
-        add_sanitizers(${PROJECT_NAME}_bin)
-    endif()
+  if(FLOAT_TETWILD_WITH_SANITIZERS)
+    add_sanitizers(${PROJECT_NAME}_bin)
+  endif()
 
-    if(NOT (${CMAKE_VERSION} VERSION_LESS "3.6.0"))
-        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  if(NOT (${CMAKE_VERSION} VERSION_LESS "3.6.0"))
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                  PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME}_bin)
-    endif()
+  endif()
 endif()
 
 # ##############################################################################
@@ -182,8 +180,8 @@ add_subdirectory(src)
 
 # Compile extras only if this is a top-level project
 if(FLOAT_TETWILD_TOPLEVEL_PROJECT)
-    # Unit tests
-    include(CTest)
-    enable_testing()
-    add_subdirectory(tests)
+  # Unit tests
+  include(CTest)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
